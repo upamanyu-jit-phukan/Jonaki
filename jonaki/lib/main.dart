@@ -15,6 +15,7 @@ class MyApp extends StatelessWidget {
       title: 'Jonaki',
       theme: AppTheme.lightTheme,
       home: const MainPage(),
+      // home: const Center(child: Text('hello'),),
     );
   }
 }

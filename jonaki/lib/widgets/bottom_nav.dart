@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:jonaki/screens/analytics_screen.dart';
 import '../screens/home_screen.dart';
-import '../screens/analytics_screen.dart';
 import '../screens/search_screen.dart';
 import '../screens/alert_screen.dart';
 
@@ -17,7 +17,7 @@ class _MainPageState extends State<MainPage> {
   final List<Widget> _screens = [
     const HomeScreen(),
     const SearchScreen(),
-    const AnalyticsScreen(),
+    const AnalyticsScreenFull(),
     AlertScreen(),
   ];
 
