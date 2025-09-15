@@ -23,7 +23,7 @@ class _RingPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final stroke = 10.0;
+    const stroke = 10.0;
     final center = size.center(Offset.zero);
     final radius = size.width / 2 - stroke;
 

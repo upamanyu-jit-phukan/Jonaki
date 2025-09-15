@@ -2,6 +2,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:jonaki/theme/colors.dart';
 
 /// RiskDetailCard
 /// - Renders different visualizations depending on `title`
@@ -71,16 +72,18 @@ class _RiskDetailCardState extends State<RiskDetailCard> {
     for (int i = 0; i < factorsCount; i++) {
       final name = switch (key) {
         'Low Self-Efficacy' => 'Factor ${i + 1} (E${i + 1})',
-        'Mental Health' => 'Factor ${i + 1} (M${i + 1})',
+        'Mental Health Risk' => 'Factor ${i + 1} (M${i + 1})',
         'Financial Stress' => 'Factor ${i + 1} (F${i + 1})',
         'Academic Stress' => 'Factor ${i + 1} (A${i + 1})',
         _ => 'Factor ${i + 1}',
-      };
-      // mix of random and proportional
+      }; // mix of random and proportional, ensure minimum 1
       final val = (remaining > 0)
-          ? (rnd.nextInt(max(1, (remaining ~/ (factorsCount - i)))) +
-              (count ~/ (factorsCount + 1)))
-          : rnd.nextInt(max(1, count ~/ 4));
+          ? max(
+              1,
+              (rnd.nextInt(max(1, (remaining ~/ (factorsCount - i)))) +
+                  (count ~/ (factorsCount + 1))),
+            )
+          : 1;
       out[name] = val;
       remaining = max(0, remaining - val);
     }
@@ -157,14 +160,14 @@ class _RiskDetailCardState extends State<RiskDetailCard> {
           const SizedBox(height: 12),
 
           // choose visualization by title
-          if (title == 'Dropout Risk' || title == 'Late-Night Activity') ...[
+          if (title == 'Digital Overexposure') ...[
             // Line chart area (scrollable horizontally)
             _buildScrollableLineChart(context, title, cnt),
             const SizedBox(height: 12),
             Text("Formula: $formula",
                 style: TextStyle(color: Colors.grey.shade700)),
           ] else if (title == 'Low Self-Efficacy' ||
-              title == 'Mental Health' ||
+              title == 'Mental Health Risk' ||
               title == 'Financial Stress' ||
               title == 'Academic Stress') ...[
             // Pie chart area for factor breakdown
@@ -180,7 +183,7 @@ class _RiskDetailCardState extends State<RiskDetailCard> {
                 style: TextStyle(color: Colors.grey.shade700)),
           ] else ...[
             // fallback
-            Text("No visualization available for this category."),
+            const Text("No visualization available for this category."),
             const SizedBox(height: 8),
             Text("Formula: $formula",
                 style: TextStyle(color: Colors.grey.shade700)),
@@ -193,18 +196,23 @@ class _RiskDetailCardState extends State<RiskDetailCard> {
   // ---------- Line chart builder ----------
   Widget _buildScrollableLineChart(
       BuildContext context, String key, int count) {
-    // generate 18 months of data (you'll see last N, default visible = 10)
-    final monthsTotal = 18;
+    // generate 18 months of data
+    const monthsTotal = 18;
     final months = _lastNMonths(monthsTotal);
     final series = _mockMonthlySeries(monthsTotal, count);
     final maxY = (series.isEmpty ? 1 : series.reduce(max)) * 1.25;
 
-    // width per month; try to fit defaultMonthsVisible in wide screens else show smaller
-    final perMonthWidth = 76.0; // smaller to reduce overflow
+    const perMonthWidth = 76.0;
     final chartWidth = (monthsTotal * perMonthWidth).toDouble();
 
     final spots = List.generate(
         monthsTotal, (i) => FlSpot(i.toDouble(), series[i].toDouble()));
+
+    // pick color based on category (you can adjust mapping as needed)
+    final Map<String, Color> lineColors = {
+      "Digital Overexposure": kRoughBrown,
+    };
+    final lineColor = lineColors[key] ?? kOffNavy;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -224,52 +232,49 @@ class _RiskDetailCardState extends State<RiskDetailCard> {
                   maxY: maxY,
                   gridData: const FlGridData(show: false),
                   titlesData: FlTitlesData(
-                      leftTitles: AxisTitles(
-                          sideTitles: SideTitles(
-                              showTitles: true,
-                              reservedSize: 40,
-                              getTitlesWidget: (v, _) {
-                                return Text(v.toInt().toString(),
-                                    style: const TextStyle(fontSize: 11));
-                              })),
-                      bottomTitles: AxisTitles(
-                          sideTitles: SideTitles(
-                              showTitles: true,
-                              reservedSize: 36,
-                              getTitlesWidget: (v, _) {
-                                final idx = v.toInt();
-                                if (idx < 0 || idx >= months.length)
-                                  return const SizedBox.shrink();
-                                // show only a subset of month labels to avoid clutter
-                                if (months.length > 12) {
-                                  // pick every 2nd label when many months
-                                  if (idx % 2 != 0)
-                                    return const SizedBox.shrink();
-                                }
-                                return Text(months[idx],
-                                    style: const TextStyle(fontSize: 11));
-                              }))),
+                    leftTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 40,
+                        getTitlesWidget: (v, _) => Text(
+                          v.toInt().toString(),
+                          style: const TextStyle(fontSize: 11),
+                        ),
+                      ),
+                    ),
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 36,
+                        getTitlesWidget: (v, _) {
+                          final idx = v.toInt();
+                          if (idx < 0 || idx >= months.length)
+                            return const SizedBox.shrink();
+                          if (months.length > 12 && idx % 2 != 0)
+                            return const SizedBox.shrink();
+                          return Text(months[idx],
+                              style: const TextStyle(fontSize: 11));
+                        },
+                      ),
+                    ),
+                  ),
                   lineBarsData: [
                     LineChartBarData(
                       spots: spots,
                       isCurved: true,
-                      color: Colors.deepPurple.shade400,
+                      color: lineColor,
                       barWidth: 3,
                       dotData: FlDotData(
                         show: true,
                         getDotPainter: (spot, percent, barData, index) =>
                             FlDotCirclePainter(
                           radius: 4,
-                          color: Colors.deepPurple.shade400,
+                          color: lineColor,
                           strokeWidth: 2,
                           strokeColor: Colors.white,
                         ),
                       ),
-                      belowBarData: BarAreaData(
-                        show: true,
-                        color: Colors.deepPurple.shade200.withValues(alpha: 50),
-                        // 50 ~ 20% opacity (0–255)
-                      ),
+                      belowBarData: BarAreaData(show: false), // <-- remove fill
                     ),
                   ],
                   lineTouchData: LineTouchData(
@@ -278,16 +283,12 @@ class _RiskDetailCardState extends State<RiskDetailCard> {
                           horizontal: 12, vertical: 8),
                       tooltipMargin: 8,
                       getTooltipColor: (touchedSpot) => Colors.black87,
-                      getTooltipItems: (touchedSpots) {
-                        return touchedSpots.map((t) {
-                          final v = t.y.toInt();
-                          final m = months[t.x.toInt()];
-                          return LineTooltipItem(
-                            "$m\n$v students",
-                            const TextStyle(color: Colors.white),
-                          );
-                        }).toList();
-                      },
+                      getTooltipItems: (touchedSpots) => touchedSpots.map((t) {
+                        final v = t.y.toInt();
+                        final m = months[t.x.toInt()];
+                        return LineTooltipItem("$m\n$v students",
+                            const TextStyle(color: Colors.white));
+                      }).toList(),
                     ),
                   ),
                 ),
@@ -296,20 +297,20 @@ class _RiskDetailCardState extends State<RiskDetailCard> {
           ),
         ),
         const SizedBox(height: 8),
-        Row(children: [
-          Text("Showing last ${months.length} months",
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
-          const Spacer(),
-          TextButton(
-            onPressed: _jumpToLatest,
-            child: const Text("Go to latest"),
-          ),
-        ]),
+        Row(
+          children: [
+            Text("Showing last ${months.length} months",
+                style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+            const Spacer(),
+            TextButton(
+                onPressed: _jumpToLatest, child: const Text("Go to latest")),
+          ],
+        ),
       ],
     );
   }
 
-  // ---------- Pie chart area ----------
+// ---------- Pie chart area ----------
   Widget _buildPieChartArea(String key, int count) {
     final factorsCount =
         4 + (key == 'Low Self-Efficacy' ? 1 : 0); // 4-5 factors
@@ -318,13 +319,8 @@ class _RiskDetailCardState extends State<RiskDetailCard> {
         .fold<int>(0, (a, b) => a + b)
         .clamp(1, double.maxFinite.toInt());
 
-    final colors = [
-      Colors.red.shade600,
-      Colors.orange.shade600,
-      Colors.blue.shade600,
-      Colors.green.shade600,
-      Colors.purple.shade600
-    ];
+    // Jonaki theme colors
+    final colors = [kGold, kRoughBrown, kOffNavy, kPale, Colors.green.shade600];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -405,9 +401,9 @@ class _RiskDetailCardState extends State<RiskDetailCard> {
     );
   }
 
-  // ---------- Social grouped bar chart ----------
+// ---------- Social grouped bar chart ----------
   Widget _buildSocialGroupedBar(String key, int count) {
-    final factorsCount = 5;
+    const factorsCount = 5;
     final bars = _mockSocialBars(count, factorsCount);
     final labels = List.generate(factorsCount, (i) => "F${i + 1}");
 
@@ -415,8 +411,12 @@ class _RiskDetailCardState extends State<RiskDetailCard> {
         bars.expand((m) => m.values).fold<int>(0, (a, b) => a > b ? a : b);
     final maxY = max(1, (maxVal * 1.25).round());
 
-    final groupWidth = 56.0;
+    const groupWidth = 56.0;
     final totalWidth = (groupWidth * factorsCount).toDouble();
+
+    // Jonaki theme colors
+    final aboveColor = kGold.withOpacity(0.7);
+    final criticalColor = kRoughBrown;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -445,8 +445,9 @@ class _RiskDetailCardState extends State<RiskDetailCard> {
                             reservedSize: 36,
                             getTitlesWidget: (v, _) {
                               final idx = v.toInt();
-                              if (idx < 0 || idx >= labels.length)
+                              if (idx < 0 || idx >= labels.length) {
                                 return const SizedBox.shrink();
+                              }
                               return Text("${idx + 1}",
                                   style: const TextStyle(
                                       fontWeight: FontWeight.bold));
@@ -457,23 +458,21 @@ class _RiskDetailCardState extends State<RiskDetailCard> {
                     final crit = bars[i]['critical']!.toDouble();
                     return BarChartGroupData(
                       x: i,
-                      barsSpace: 0, // <- rods inside group touch
+                      barsSpace: 0,
                       barRods: [
                         BarChartRodData(
                           toY: above,
                           width: 12,
-                          color: Colors.blue.shade300,
-                          borderRadius:
-                              BorderRadius.zero, // no curve to keep flush
+                          color: aboveColor,
+                          borderRadius: BorderRadius.zero,
                         ),
                         BarChartRodData(
                           toY: crit,
                           width: 12,
-                          color: Colors.blue.shade800,
+                          color: criticalColor,
                           borderRadius: BorderRadius.zero,
                         ),
                       ],
-                      // add spacing between groups
                       groupVertically: false,
                     );
                   }),

@@ -15,7 +15,7 @@ class _MainPageState extends State<MainPage> {
   int _selectedIndex = 0;
 
   final List<Widget> _screens = [
-    const HomeScreen(),
+    HomeScreen(),
     const SearchScreen(),
     const AnalyticsScreenFull(),
     AlertScreen(),

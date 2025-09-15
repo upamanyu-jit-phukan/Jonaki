@@ -177,7 +177,7 @@ class _SearchScreenState extends State<SearchScreen> {
                           fillColor: themeColor.withOpacity(
                               0.05), // very light themed background
                         ),
-                        style: TextStyle(fontSize: 14, color: Colors.black87),
+                        style: const TextStyle(fontSize: 14, color: Colors.black87),
                       ),
                     ),
                     const SizedBox(width: 8),

@@ -29,8 +29,11 @@ class SparklinePainter extends CustomPainter {
     for (int i = 0; i < points.length; i++) {
       final x = (i / (points.length - 1)) * size.width;
       final y = size.height - ((points[i] - minP) / range) * size.height;
-      if (i == 0) path.moveTo(x, y);
-      else path.lineTo(x, y);
+      if (i == 0) {
+        path.moveTo(x, y);
+      } else {
+        path.lineTo(x, y);
+      }
     }
 
     final fillPath = Path.from(path)

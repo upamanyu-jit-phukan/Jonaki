@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:jonaki/theme/colors.dart';
 
 class AlertScreen extends StatefulWidget {
+  const AlertScreen({super.key});
+
   @override
   _AlertScreenState createState() => _AlertScreenState();
 }
@@ -36,8 +39,46 @@ class _AlertScreenState extends State<AlertScreen> {
     },
   ];
 
+  // Map risk levels to Jonaki theme colors
   Color _riskColor(String risk) {
-    return Colors.red.shade700;
+    switch (risk) {
+      case "Critical":
+        return kGold;
+      case "High":
+        return kRoughBrown;
+      case "Medium":
+        return kOffNavy;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  // Map category background colors (optional, adjust as needed)
+  Color _categoryBgColor(String category) {
+    switch (category) {
+      case "Attendance":
+        return kOffNavy.withOpacity(0.15);
+      case "Finance":
+        return kGold.withOpacity(0.15);
+      case "Academic":
+        return kRoughBrown.withOpacity(0.15);
+      default:
+        return Colors.grey.withOpacity(0.1);
+    }
+  }
+
+  // Map category text colors
+  Color _categoryTextColor(String category) {
+    switch (category) {
+      case "Attendance":
+        return kOffNavy;
+      case "Finance":
+        return kGold;
+      case "Academic":
+        return kRoughBrown;
+      default:
+        return Colors.grey.shade800;
+    }
   }
 
   @override
@@ -47,11 +88,14 @@ class _AlertScreenState extends State<AlertScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Critical Alerts"),
-        backgroundColor: Colors.indigo,
+        title: const Text(
+          "Critical Alerts",
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: kOffNavy,
       ),
       body: criticalAlerts.isEmpty
-          ? Center(
+          ? const Center(
               child: Text(
                 "🎉 No critical alerts",
                 style: TextStyle(fontSize: 18, color: Colors.grey),
@@ -62,30 +106,31 @@ class _AlertScreenState extends State<AlertScreen> {
               itemBuilder: (context, index) {
                 final alert = criticalAlerts[index];
                 return Card(
-                  margin: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  margin:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   child: ExpansionTile(
                     leading: CircleAvatar(
                       backgroundColor: _riskColor(alert["risk"]),
                       child: Text(alert["name"][0],
-                          style: TextStyle(color: Colors.white)),
+                          style: const TextStyle(color: Colors.white)),
                     ),
                     title: Text(
                       "${alert["name"]} (${alert["id"]})",
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: Colors.indigo,
+                        color: kOffNavy,
                       ),
                     ),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(alert["summary"]),
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
                         Row(
                           children: [
                             // Risk badge
                             Container(
-                              padding: EdgeInsets.symmetric(
+                              padding: const EdgeInsets.symmetric(
                                   horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
                                 color: _riskColor(alert["risk"]).withOpacity(0.2),
@@ -99,27 +144,28 @@ class _AlertScreenState extends State<AlertScreen> {
                                 ),
                               ),
                             ),
-                            SizedBox(width: 8),
+                            const SizedBox(width: 8),
                             // Category tag
                             Container(
-                              padding: EdgeInsets.symmetric(
+                              padding: const EdgeInsets.symmetric(
                                   horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
-                                color: Colors.blue.shade50,
+                                color: _categoryBgColor(alert["category"]),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
                                 alert["category"],
                                 style: TextStyle(
-                                  color: Colors.blue.shade700,
+                                  color: _categoryTextColor(alert["category"]),
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ),
-                            Spacer(),
+                            const Spacer(),
                             Text(
                               alert["timestamp"],
-                              style: TextStyle(fontSize: 12, color: Colors.grey),
+                              style: const TextStyle(
+                                  fontSize: 12, color: Colors.grey),
                             ),
                           ],
                         )
@@ -131,43 +177,42 @@ class _AlertScreenState extends State<AlertScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text("📌 Context:",
+                            const Text("📌 Context:",
                                 style: TextStyle(fontWeight: FontWeight.bold)),
                             Text(alert["context"]),
-                            SizedBox(height: 10),
-                            Text("📈 Trend (placeholder graph here)",
+                            const SizedBox(height: 10),
+                            const Text("📈 Trend (placeholder graph here)",
                                 style: TextStyle(color: Colors.grey)),
-                            SizedBox(height: 10),
-                            Text("💡 Suggested interventions:",
+                            const SizedBox(height: 10),
+                            const Text("💡 Suggested interventions:",
                                 style: TextStyle(fontWeight: FontWeight.bold)),
                             Wrap(
                               spacing: 8,
                               children: [
                                 OutlinedButton(
                                     onPressed: () {},
-                                    child: Text("Schedule meeting")),
+                                    child: const Text("Schedule meeting")),
                                 OutlinedButton(
                                     onPressed: () {},
-                                    child: Text("Send message")),
+                                    child: const Text("Send message")),
                                 OutlinedButton(
                                     onPressed: () {},
-                                    child: Text("Flag to counselor")),
+                                    child: const Text("Flag to counselor")),
                               ],
                             ),
-                            Divider(),
-                            // Batch actions (only resolve + snooze)
+                            const Divider(),
                             Row(
                               children: [
                                 TextButton.icon(
-                                  icon: Icon(Icons.check_circle,
-                                      color: Colors.green),
-                                  label: Text("Resolve"),
+                                  icon: const Icon(Icons.check_circle,
+                                      color: kGold),
+                                  label: const Text("Resolve"),
                                   onPressed: () {},
                                 ),
                                 TextButton.icon(
-                                  icon: Icon(Icons.snooze,
-                                      color: Colors.orange),
-                                  label: Text("Snooze"),
+                                  icon: const Icon(Icons.snooze,
+                                      color: kRoughBrown),
+                                  label: const Text("Snooze"),
                                   onPressed: () {},
                                 ),
                               ],
